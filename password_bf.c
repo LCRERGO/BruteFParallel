@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <openssl/md5.h>
 #include <string.h>
+#include <openssl/md5.h>
+
+#include "bench.h"
 
 #define MAX 10
 
 typedef unsigned char byte;
-
 char letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
 /*
@@ -27,26 +28,27 @@ void iterate(byte * hash1, byte * hash2, char *str, int idx, int len, int *ok) {
 	int c;
 
 	// 'ok' determines when the algorithm matches.
-	if(*ok) return;
-	if (idx < (len - 1)) {
-		// Iterate for all letter combination.
-		for (c = 0; c < strlen(letters) && *ok==0; ++c) {
-			str[idx] = letters[c];
-			// Recursive call
-			iterate(hash1, hash2, str, idx + 1, len, ok);
-		}
-	} else {
-		// Include all last letters and compare the hashes.
-		for (c = 0; c < strlen(letters) && *ok==0; ++c) {
-			str[idx] = letters[c];
-			MD5((byte *) str, strlen(str), hash2);
-			if(strncmp((char*)hash1, (char*)hash2, MD5_DIGEST_LENGTH) == 0){
-				printf("found: %s\n", str);
-				//print_digest(hash2);
-				*ok = 1;
-			}
-		}
-	}
+        if(*ok) return;
+        if (idx < (len - 1)) {
+
+            // Iterate for all letter combination.
+            for (c = 0; c < strlen(letters) && *ok==0; ++c) {
+                str[idx] = letters[c];
+                // Recursive call
+                iterate(hash1, hash2, str, idx + 1, len, ok);
+            }
+        } else {
+            // Include all last letters and compare the hashes.
+            for (c = 0; c < strlen(letters) && *ok==0; ++c) {
+                str[idx] = letters[c];
+                MD5((byte *) str, strlen(str), hash2);
+                if(strncmp((char*)hash1, (char*)hash2, MD5_DIGEST_LENGTH) == 0){
+                    printf("found: %s\n", str);
+                    // print_digest(hash2);
+                    *ok = 1;
+                }
+            }
+        }
 }
 
 /*
