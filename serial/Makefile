@@ -1,4 +1,6 @@
-FLAGS=-O3 -lssl -lcrypto
+FLAGS=-lssl -lcrypto
+
+CFLAGS= -Wall -pedantic -O2
 
 CC=gcc
 
@@ -8,9 +10,12 @@ EXEC=password_bf
 
 all: $(EXEC)
 
-$(EXEC):
-	$(CC) $(FLAGS) password_bf.c -c -o password_bf.o
-	$(CC) password_bf.o -o $(EXEC) $(FLAGS)
+password_bf: password_bf.c bench.o
+	$(CC) $^ -o $@ $(FLAGS) $(CFLAGS)
+
+
+bench.o: bench.c
+	$(CC) -c $^ $(CFLAGS)
 
 run:
 	./$(EXEC)
