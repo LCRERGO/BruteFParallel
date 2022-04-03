@@ -3,6 +3,8 @@
 #include <openssl/md5.h>
 #include <string.h>
 
+#include <bench.h>
+
 #define MAX 10
 
 typedef unsigned char byte;
@@ -87,9 +89,11 @@ int main(int argc, char **argv) {
     memset(hash2, 0, MD5_DIGEST_LENGTH);
     //print_digest(hash1);
 
+    set_time_mark();
     // Generate all possible passwords of different sizes.
     for(len = 1; len <= lenMax; len++){
         memset(str, 0, len+1);
         iterate(hash1, hash2, str, 0, len, &ok);
     }
+    unset_time_mark();
 }
