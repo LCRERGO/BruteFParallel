@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,31 +25,27 @@ void print_digest(byte * hash){
 /*
  * This procedure generate all combinations of possible letters
 */
-void iterate(byte * hash1, byte * hash2, char *str, int idx, int len, int *ok) {
-	int c;
+void iterate(byte *hash1, byte *hash2, char *str, int len, int *ok)
+{
+    int i, v, aux_v;
+    int alph_len = strlen(letters);
+    uint64_t num_entries = (uint64_t)pow(alph_len, len);
 
-	// 'ok' determines when the algorithm matches.
-        if(*ok) return;
-        if (idx < (len - 1)) {
-
-            // Iterate for all letter combination.
-            for (c = 0; c < strlen(letters) && *ok==0; ++c) {
-                str[idx] = letters[c];
-                // Recursive call
-                iterate(hash1, hash2, str, idx + 1, len, ok);
-            }
-        } else {
-            // Include all last letters and compare the hashes.
-            for (c = 0; c < strlen(letters) && *ok==0; ++c) {
-                str[idx] = letters[c];
-                MD5((byte *) str, strlen(str), hash2);
-                if(strncmp((char*)hash1, (char*)hash2, MD5_DIGEST_LENGTH) == 0){
-                    printf("found: %s\n", str);
-                    // print_digest(hash2);
-                    *ok = 1;
-                }
-            }
+    for (v = 0; v < num_entries; v++) {
+        str[len] = 0;
+        aux_v = v;
+        for (i = len - 1; i >= 0; --i) {
+            str[i] = letters[aux_v % alph_len];
+            aux_v /= alph_len;
         }
+        MD5((byte *) str, strlen(str), hash2);
+        if(strncmp((char*)hash1, (char*)hash2, MD5_DIGEST_LENGTH) == 0){
+            printf("found: %s\n", str);
+            // print_digest(hash2);
+            *ok = 1;
+            return;
+        }
+    }
 }
 
 /*
@@ -90,8 +87,8 @@ int main(int argc, char **argv) {
 	//print_digest(hash1);
 
 	// Generate all possible passwords of different sizes.
-	for(len = 1; len <= lenMax; len++){
+	for(len = 1; len <= lenMax && !ok; len++){
 		memset(str, 0, len+1);
-		iterate(hash1, hash2, str, 0, len, &ok);
+                iterate(hash1, hash2, str, len, &ok);
 	}
 }

@@ -1,4 +1,4 @@
-FLAGS=-lssl -lcrypto
+FLAGS=-lssl -lcrypto -lm
 
 CFLAGS= -Wall -pedantic -O2
 
