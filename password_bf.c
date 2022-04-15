@@ -5,6 +5,7 @@
 #include <openssl/md5.h>
 
 #include "bench.h"
+#include "buffer.h"
 
 #define MAX 10
 
@@ -22,16 +23,46 @@ void print_digest(byte * hash){
 	printf("\n");
 }
 
+
+int
+compare_hashes(byte *hash1, byte *hash2, int *ok)
+{
+    if (strncmp((char *)hash1, (char *)hash2, MD5_DIGEST_LENGTH) == 0) {
+            // printf("found: %s\n", str);
+            // print_digest(hash2);
+            *ok = 1;
+            return 1;
+    }
+    return 0;
+}
+
+int
+iterate(byte *hash1, Buffer *buf, int *ok)
+{
+    int i;
+
+    for (i = 0; i < buf->size; i++) {
+        if (compare_hashes(hash1, (byte *)buf->hash_val[i], ok)) {
+            printf("found: %s\n", buf->key[i]);
+            break;
+        }
+    }
+    buffer_clear(buf);
+
+    return 1;
+}
+
 /*
  * This procedure generate all combinations of possible letters
 */
-void iterate(byte *hash1, byte *hash2, char *str, int len, int *ok)
+void
+generate_hashes(byte *hash1, byte *hash2, char *str, Buffer *buf, int len, int *ok)
 {
     int i, v, aux_v;
     int alph_len = strlen(letters);
     uint64_t num_entries = (uint64_t)pow(alph_len, len);
 
-    for (v = 0; v < num_entries; v++) {
+    for (v = 0; v < num_entries && !*ok; v++) {
         str[len] = 0;
         aux_v = v;
         for (i = len - 1; i >= 0; --i) {
@@ -39,12 +70,8 @@ void iterate(byte *hash1, byte *hash2, char *str, int len, int *ok)
             aux_v /= alph_len;
         }
         MD5((byte *) str, strlen(str), hash2);
-        if(strncmp((char*)hash1, (char*)hash2, MD5_DIGEST_LENGTH) == 0){
-            printf("found: %s\n", str);
-            // print_digest(hash2);
-            *ok = 1;
-            return;
-        }
+        buffer_add(buf, str, hash2);
+        buffer_full(buf) && iterate(hash1, buf, ok);
     }
 }
 
@@ -69,6 +96,7 @@ int main(int argc, char **argv) {
 	char hash1_str[2*MD5_DIGEST_LENGTH+1];
 	byte hash1[MD5_DIGEST_LENGTH]; // password hash
 	byte hash2[MD5_DIGEST_LENGTH]; // string hashes
+        Buffer buf; // auxiliar buffer
 
 	// Input:
 	r = scanf("%s", hash1_str);
@@ -86,9 +114,12 @@ int main(int argc, char **argv) {
 	memset(hash2, 0, MD5_DIGEST_LENGTH);
 	//print_digest(hash1);
 
+        buffer_create(&buf);
+
 	// Generate all possible passwords of different sizes.
 	for(len = 1; len <= lenMax && !ok; len++){
 		memset(str, 0, len+1);
-                iterate(hash1, hash2, str, len, &ok);
+                generate_hashes(hash1, hash2, str, &buf, len, &ok);
+                buffer_full(&buf) && iterate(hash1, &buf, &ok);
 	}
 }
