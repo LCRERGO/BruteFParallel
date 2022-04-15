@@ -1,4 +1,4 @@
 # gitignore
 
 password_bf
-bench.o
+*.o
