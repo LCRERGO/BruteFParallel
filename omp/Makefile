@@ -1,4 +1,5 @@
-FLAGS=-O3 -lssl -lcrypto
+FLAGS=-lssl -lcrypto
+CFLAGS=-O3 -Wall -pedantic -fopenmp -g 
 
 CC=gcc
 
@@ -6,14 +7,19 @@ RM=rm -f
 
 EXEC=password_bf
 
+SRC=password_bf.c
+OBJ=${SRC:.c=.o}
+
 all: $(EXEC)
 
-$(EXEC):
-	$(CC) $(FLAGS) password_bf.c -c -o password_bf.o
-	$(CC) password_bf.o -o $(EXEC) $(FLAGS)
+$(EXEC): $(OBJ)
+	$(CC) $^ -o $@ $(FLAGS) $(CFLAGS)
+
+.o: .c
+	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(FLAGS)
 
 run:
 	./$(EXEC)
 
 clean:
-	$(RM) password_bf.o $(EXEC)
+	$(RM) $(OBJ) $(EXEC)
