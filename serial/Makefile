@@ -22,4 +22,4 @@ run:
 	./$(EXEC)
 
 clean:
-	$(RM) password_bf.o $(EXEC)
+	$(RM) $(OBJ) $(EXEC)
